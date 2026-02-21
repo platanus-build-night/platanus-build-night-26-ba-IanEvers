@@ -592,7 +592,7 @@ export default function ConversationAnalyzer() {
                         disabled={spk.interruptionsGiven === 0}
                         className="text-xs text-gray-500 hover:text-indigo-600 disabled:cursor-default disabled:hover:text-gray-500 transition-colors"
                       >
-                        ↗ {spk.interruptionsGiven} dadas
+                        ↗ {spk.interruptionsGiven} interrupciones
                       </button>
                       <button
                         onClick={() => scrollToInterruption(spk.id, "receiver")}
