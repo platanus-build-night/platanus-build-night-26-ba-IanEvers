@@ -4,8 +4,8 @@ import { useState, useRef } from "react";
 import { ConversationAnalysis, NotablePhrase, InterruptionEvent, SpeakerTopic } from "@/app/api/conversation/route";
 import { TranscriptResult } from "@/app/api/transcribe/route";
 
-const SPEAKER_COLORS = ["#6366f1", "#ec4899", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6"];
-const SPEAKER_BG = ["#eef2ff", "#fdf2f8", "#fffbeb", "#f0fdf4", "#eff6ff", "#f5f3ff"];
+const SPEAKER_COLORS = ["#292524", "#9a3412", "#1e3a5f", "#166534", "#78350f", "#1c3a4a"];
+const SPEAKER_BG = ["#f5f4f3", "#fef3ee", "#eff3f8", "#f0f7f2", "#fef9ee", "#eff5f7"];
 
 type Phase = "idle" | "recording" | "transcribing" | "analyzing" | "done" | "error";
 
@@ -88,11 +88,11 @@ function renderAnnotated(text: string, phrases: NotablePhrase[], speakerId: numb
     if (r.start > pos) nodes.push(text.slice(pos, r.start));
     const content = text.slice(r.start, r.end);
     if (r.kind === "strong")
-      nodes.push(<span key={r.start} title={r.title} className="rounded px-0.5 cursor-help border-b-2 bg-emerald-100 text-emerald-800 border-emerald-400">{content}</span>);
+      nodes.push(<span key={r.start} title={r.title} className="rounded px-0.5 cursor-help border-b-2 bg-green-50 text-green-900 border-green-500">{content}</span>);
     else if (r.kind === "weak")
-      nodes.push(<span key={r.start} title={r.title} className="rounded px-0.5 cursor-help border-b-2 bg-red-100 text-red-700 border-red-400">{content}</span>);
+      nodes.push(<span key={r.start} title={r.title} className="rounded px-0.5 cursor-help border-b-2 bg-red-50 text-red-800 border-red-400">{content}</span>);
     else
-      nodes.push(<span key={r.start} title={r.title} className="rounded px-0.5 cursor-help border-b-2 border-dashed bg-amber-50 text-amber-700 border-amber-400">{content}</span>);
+      nodes.push(<span key={r.start} title={r.title} className="rounded px-0.5 cursor-help border-b-2 border-dashed bg-amber-50 text-amber-800 border-amber-400">{content}</span>);
     pos = r.end;
   }
   if (pos < text.length) nodes.push(text.slice(pos));
@@ -380,7 +380,7 @@ export default function ConversationAnalyzer() {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-gray-50">
+    <div className="flex flex-col h-full overflow-y-auto bg-stone-50">
 
       {/* IDLE */}
       {phase === "idle" && (
@@ -393,28 +393,28 @@ export default function ConversationAnalyzer() {
             </p>
           </div>
 
-          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-            <button onClick={() => setLanguage("en")} className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${language === "en" ? "bg-indigo-600 text-white shadow" : "text-gray-400 hover:text-gray-600"}`}>
+          <div className="flex items-center gap-1 bg-white border border-stone-200 rounded-xl p-1 shadow-sm">
+            <button onClick={() => setLanguage("en")} className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${language === "en" ? "bg-stone-900 text-white shadow" : "text-stone-400 hover:text-stone-600"}`}>
               🇺🇸 Inglés
             </button>
-            <button onClick={() => setLanguage("es")} className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${language === "es" ? "bg-indigo-600 text-white shadow" : "text-gray-400 hover:text-gray-600"}`}>
+            <button onClick={() => setLanguage("es")} className={`px-5 py-2 rounded-lg text-sm font-semibold transition-colors ${language === "es" ? "bg-stone-900 text-white shadow" : "text-stone-400 hover:text-stone-600"}`}>
               🇦🇷 Español
             </button>
           </div>
 
           <div className="flex flex-col gap-3 w-full max-w-xs">
             {DEMOS.filter((d) => d.lang === language).map((demo) => (
-              <button key={demo.file} onClick={() => handleDemo(demo)} className="w-full px-6 py-4 rounded-2xl bg-violet-600 text-white font-bold text-sm hover:bg-violet-700 transition-colors shadow-lg text-left">
+              <button key={demo.file} onClick={() => handleDemo(demo)} className="w-full px-6 py-4 rounded-2xl bg-stone-900 text-white font-bold text-sm hover:bg-stone-800 transition-colors shadow-sm text-left">
                 ✨ Demo: {demo.label}
               </button>
             ))}
-            <label className="w-full px-6 py-4 rounded-2xl border-2 border-dashed border-indigo-300 bg-white text-indigo-700 font-semibold text-sm cursor-pointer hover:bg-indigo-50 transition-colors flex flex-col items-center gap-1">
+            <label className="w-full px-6 py-4 rounded-2xl border-2 border-dashed border-stone-300 bg-white text-stone-700 font-semibold text-sm cursor-pointer hover:bg-stone-50 transition-colors flex flex-col items-center gap-1">
               <span className="text-xl">📂</span>
               Subir archivo de audio
-              <span className="text-xs font-normal text-indigo-400">MP3, M4A, WAV, WebM, OGG</span>
+              <span className="text-xs font-normal text-stone-400">MP3, M4A, WAV, WebM, OGG</span>
               <input ref={fileInputRef} type="file" accept="audio/*" className="hidden" onChange={handleFileUpload} />
             </label>
-            <button onClick={startRecording} className="w-full px-6 py-4 rounded-2xl bg-gray-800 text-white font-bold text-sm hover:bg-gray-900 transition-colors flex items-center justify-center gap-2">
+            <button onClick={startRecording} className="w-full px-6 py-4 rounded-2xl bg-orange-800 text-white font-bold text-sm hover:bg-orange-900 transition-colors flex items-center justify-center gap-2">
               🔴 Grabar en vivo
             </button>
           </div>
@@ -442,7 +442,7 @@ export default function ConversationAnalyzer() {
       {/* PROCESSING */}
       {(phase === "transcribing" || phase === "analyzing") && (
         <div className="flex flex-col items-center justify-center h-full gap-4 p-8 text-center">
-          <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-12 h-12 border-4 border-stone-800 border-t-transparent rounded-full animate-spin" />
           <p className="text-gray-700 font-semibold text-lg">
             {phase === "transcribing" ? "Transcribiendo audio..." : "Analizando conversación..."}
           </p>
@@ -470,9 +470,9 @@ export default function ConversationAnalyzer() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
               {cacheHit && (
-                <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-700 text-xs font-semibold">
+                <span className="flex items-center gap-1.5 px-3 py-1 bg-stone-100 border border-stone-200 rounded-full text-stone-600 text-xs font-semibold">
                   ⚡ Desde caché
-                  <button onClick={clearCacheAndReset} className="ml-1 text-emerald-500 hover:text-emerald-700 font-bold">✕ rehacer</button>
+                  <button onClick={clearCacheAndReset} className="ml-1 text-stone-400 hover:text-stone-700 font-bold">✕ rehacer</button>
                 </span>
               )}
               <span className="text-sm text-gray-400">
@@ -622,10 +622,10 @@ export default function ConversationAnalyzer() {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
               <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Transcripción</p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-gray-600">
-                <button onClick={() => scrollToAnnotation("strong")} className="flex items-center gap-1.5 hover:text-emerald-700 transition-colors"><span className="w-3 h-3 rounded-sm bg-emerald-100 border-b-2 border-emerald-400 inline-block flex-shrink-0" /> lenguaje destacado</button>
-                <button onClick={() => scrollToAnnotation("weak")} className="flex items-center gap-1.5 hover:text-red-700 transition-colors"><span className="w-3 h-3 rounded-sm bg-red-100 border-b-2 border-red-400 inline-block flex-shrink-0" /> error gramatical</button>
-                <button onClick={() => scrollToAnnotation("stutter")} className="flex items-center gap-1.5 hover:text-amber-700 transition-colors"><span className="w-3 h-3 rounded-sm bg-amber-50 border-b-2 border-dashed border-amber-400 inline-block flex-shrink-0" /> balbuceo / muletilla</button>
-                <button onClick={() => scrollToAnnotation("self")} className="flex items-center gap-1.5 hover:text-purple-700 transition-colors"><span className="w-3 h-3 rounded-sm border-l-2 border-purple-400 inline-block flex-shrink-0" /> auto-referencial</button>
+                <button onClick={() => scrollToAnnotation("strong")} className="flex items-center gap-1.5 hover:text-green-900 transition-colors"><span className="w-3 h-3 rounded-sm bg-green-50 border-b-2 border-green-500 inline-block flex-shrink-0" /> lenguaje destacado</button>
+                <button onClick={() => scrollToAnnotation("weak")} className="flex items-center gap-1.5 hover:text-red-800 transition-colors"><span className="w-3 h-3 rounded-sm bg-red-50 border-b-2 border-red-400 inline-block flex-shrink-0" /> error gramatical</button>
+                <button onClick={() => scrollToAnnotation("stutter")} className="flex items-center gap-1.5 hover:text-amber-800 transition-colors"><span className="w-3 h-3 rounded-sm bg-amber-50 border-b-2 border-dashed border-amber-400 inline-block flex-shrink-0" /> balbuceo / muletilla</button>
+                <button onClick={() => scrollToAnnotation("self")} className="flex items-center gap-1.5 hover:text-stone-700 transition-colors"><span className="w-3 h-3 rounded-sm border-l-2 border-stone-400 inline-block flex-shrink-0" /> auto-referencial</button>
               </div>
             </div>
             {activeTopic && (
@@ -652,9 +652,9 @@ export default function ConversationAnalyzer() {
                 const bgStyle = interruption
                   ? { background: "#fffbeb", border: "1px solid #fcd34d" }
                   : topicMatch === true
-                  ? { background: bg, borderLeft: selfRef ? "3px solid #c084fc" : undefined }
+                  ? { background: bg, borderLeft: selfRef ? "3px solid #a8a29e" : undefined }
                   : selfRef
-                  ? { borderLeft: "3px solid #c084fc" }
+                  ? { borderLeft: "3px solid #a8a29e" }
                   : {};
                 const opacity = activeTopic && topicMatch === false ? 0.25 : 1;
 
