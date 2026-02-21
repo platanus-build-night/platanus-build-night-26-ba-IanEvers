@@ -119,7 +119,7 @@ Language guidelines:
 - vocabularyScore: range and sophistication of words used
 - grammarScore: grammatical correctness
 - overallScore: average weighted
-- notablePhrases: max 8 total. "strong" = rare/precise/eloquent word or phrase. "weak" = clear grammar mistake or awkward phrasing. Use exact substrings from the transcript.
+- notablePhrases: max 8 total. "strong" = rare/precise/eloquent word or phrase. "weak" = clear grammar mistake or awkward phrasing. Use exact substrings from the transcript. IMPORTANT: ignore digits used as spoken words (e.g. "1" instead of "one", "2" instead of "two") — these are speech-to-text transcription artifacts, not speaker errors.
 
 Interruptions: identify turns where a speaker cuts off or takes over mid-sentence from another speaker. The turnIndex refers to the [N] index prefix in the numbered transcript. List each interruption event with the giver (who interrupted), receiver (who was cut off), and turnIndex (the giver's turn number).
 
@@ -142,7 +142,7 @@ Lenguaje:
 - vocabularyScore: rango y sofisticación del vocabulario
 - grammarScore: corrección gramatical
 - overallScore: promedio ponderado
-- notablePhrases: máximo 8 en total. "strong" = palabra o frase precisa/elocuente/inusual. "weak" = error gramatical claro o construcción extraña. Usá substrings exactos de la transcripción.
+- notablePhrases: máximo 8 en total. "strong" = palabra o frase precisa/elocuente/inusual. "weak" = error gramatical claro o construcción extraña. Usá substrings exactos de la transcripción. IMPORTANTE: ignorá dígitos usados como palabras habladas (ej: "1" en lugar de "uno", "2" en lugar de "dos") — son artefactos de la transcripción automática, no errores del hablante.
 
 Interrupciones: identificá los turnos donde un hablante corta o toma la palabra mientras otro habla. El turnIndex refiere al índice [N] de la transcripción numerada. Listá cada evento con giver (quien interrumpió), receiver (quien fue cortado) y turnIndex.
 
