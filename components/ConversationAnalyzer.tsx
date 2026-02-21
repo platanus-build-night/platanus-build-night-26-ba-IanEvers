@@ -138,6 +138,7 @@ export default function ConversationAnalyzer() {
   const [interruptionCursor, setInterruptionCursor] = useState<Record<string, number>>({});
   const [topicCursor, setTopicCursor] = useState<Record<string, number>>({});
   const [activeTopic, setActiveTopic] = useState<{ speakerId: number; topicName: string } | null>(null);
+  const [phraseCursor, setPhraseCursor] = useState<Record<string, number>>({});
   const turnRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const transcriptRef = useRef<HTMLDivElement | null>(null);
 
@@ -326,6 +327,38 @@ export default function ConversationAnalyzer() {
     setInterruptionCursor((prev) => ({ ...prev, [key]: (cursor + 1) % events.length }));
   };
 
+  const scrollToAnnotation = (type: "strong" | "weak" | "stutter" | "self") => {
+    if (!transcript || !analysis) return;
+    let turnIndices: number[] = [];
+
+    if (type === "strong" || type === "weak") {
+      transcript.turns.forEach((turn, i) => {
+        const has = analysis.notablePhrases.some(
+          (p) => p.type === type && p.speakerId === turn.speaker &&
+            turn.text.toLowerCase().includes(p.phrase.toLowerCase())
+        );
+        if (has) turnIndices.push(i);
+      });
+    } else if (type === "stutter") {
+      transcript.turns.forEach((turn, i) => {
+        if (getDisfluencyRanges(turn.text).length > 0) turnIndices.push(i);
+      });
+    } else if (type === "self") {
+      const all = analysis.speakers.flatMap((s) => s.selfTurnIndices ?? []);
+      turnIndices = [...new Set(all)].sort((a, b) => a - b);
+    }
+
+    if (!turnIndices.length) return;
+    const cursor = phraseCursor[type] ?? 0;
+    const turnIndex = turnIndices[cursor % turnIndices.length];
+    const el = turnRefs.current[turnIndex];
+    const container = transcriptRef.current;
+    if (el && container) {
+      container.scrollTo({ top: el.offsetTop - container.offsetTop - 12, behavior: "smooth" });
+    }
+    setPhraseCursor((prev) => ({ ...prev, [type]: (cursor + 1) % turnIndices.length }));
+  };
+
   const scrollToTopic = (speakerId: number, topic: SpeakerTopic) => {
     // Toggle off if same topic clicked again
     if (activeTopic?.speakerId === speakerId && activeTopic?.topicName === topic.name) {
@@ -431,11 +464,11 @@ export default function ConversationAnalyzer() {
 
       {/* RESULTS */}
       {phase === "done" && analysis && transcript && (
-        <div className="flex flex-col gap-5 p-5 max-w-4xl mx-auto w-full">
+        <div className="flex flex-col gap-4 p-3 sm:p-5 max-w-4xl mx-auto w-full">
 
           {/* Top bar */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
               {cacheHit && (
                 <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-emerald-700 text-xs font-semibold">
                   ⚡ Desde caché
@@ -447,11 +480,11 @@ export default function ConversationAnalyzer() {
                 {uploadedFileName && ` · ${uploadedFileName}`}
               </span>
             </div>
-            <button onClick={reset} className="text-xs text-gray-400 hover:text-gray-600 underline">← Nuevo análisis</button>
+            <button onClick={reset} className="self-start sm:self-auto text-xs text-gray-400 hover:text-gray-600 underline">← Nuevo análisis</button>
           </div>
 
           {/* Speaker grid */}
-          <div className={`grid gap-4 ${analysis.speakers.length >= 3 ? "grid-cols-3" : "grid-cols-2"}`}>
+          <div className={`grid gap-3 grid-cols-1 ${analysis.speakers.length >= 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
             {analysis.speakers.map((spk) => {
               const color = SPEAKER_COLORS[spk.id % SPEAKER_COLORS.length];
               const bg = SPEAKER_BG[spk.id % SPEAKER_BG.length];
@@ -476,13 +509,13 @@ export default function ConversationAnalyzer() {
                       <span className="text-xs font-bold" style={{ color }}>{spk.talkTimePercent}%</span>
                     </div>
                     {/* Interruptions */}
-                    <div className="flex gap-3 mt-2">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
                       <button
                         onClick={() => scrollToInterruption(spk.id, "giver")}
                         disabled={spk.interruptionsGiven === 0}
                         className="text-xs text-gray-500 hover:text-indigo-600 disabled:cursor-default disabled:hover:text-gray-500 transition-colors"
                       >
-                        ↗ {spk.interruptionsGiven} interrupciones dadas
+                        ↗ {spk.interruptionsGiven} dadas
                       </button>
                       <button
                         onClick={() => scrollToInterruption(spk.id, "receiver")}
@@ -585,14 +618,14 @@ export default function ConversationAnalyzer() {
           </div>
 
           {/* Annotated transcript */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
               <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Transcripción</p>
-              <div className="flex items-center gap-3 text-xs text-gray-600 flex-wrap">
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-emerald-100 border-b-2 border-emerald-400 inline-block flex-shrink-0" /> lenguaje destacado</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-red-100 border-b-2 border-red-400 inline-block flex-shrink-0" /> error gramatical</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-amber-50 border-b-2 border-dashed border-amber-400 inline-block flex-shrink-0" /> balbuceo / muletilla</span>
-                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm border-l-2 border-purple-400 inline-block flex-shrink-0" /> auto-referencial</span>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-gray-600">
+                <button onClick={() => scrollToAnnotation("strong")} className="flex items-center gap-1.5 hover:text-emerald-700 transition-colors"><span className="w-3 h-3 rounded-sm bg-emerald-100 border-b-2 border-emerald-400 inline-block flex-shrink-0" /> lenguaje destacado</button>
+                <button onClick={() => scrollToAnnotation("weak")} className="flex items-center gap-1.5 hover:text-red-700 transition-colors"><span className="w-3 h-3 rounded-sm bg-red-100 border-b-2 border-red-400 inline-block flex-shrink-0" /> error gramatical</button>
+                <button onClick={() => scrollToAnnotation("stutter")} className="flex items-center gap-1.5 hover:text-amber-700 transition-colors"><span className="w-3 h-3 rounded-sm bg-amber-50 border-b-2 border-dashed border-amber-400 inline-block flex-shrink-0" /> balbuceo / muletilla</button>
+                <button onClick={() => scrollToAnnotation("self")} className="flex items-center gap-1.5 hover:text-purple-700 transition-colors"><span className="w-3 h-3 rounded-sm border-l-2 border-purple-400 inline-block flex-shrink-0" /> auto-referencial</button>
               </div>
             </div>
             {activeTopic && (
