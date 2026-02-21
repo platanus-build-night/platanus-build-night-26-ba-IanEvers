@@ -311,6 +311,78 @@ export default function ConversationAnalyzer() {
   const formatTime = (s: number) =>
     `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+  const downloadReport = () => {
+    if (!analysis || !transcript) return;
+    const lines: string[] = [];
+    const date = new Date().toLocaleDateString("es-AR");
+
+    lines.push(`# Análisis de conversación — Charlita`);
+    lines.push(`**Archivo:** ${uploadedFileName ?? "grabación"}  `);
+    lines.push(`**Fecha:** ${date}  `);
+    lines.push(`**Participantes:** ${transcript.speakerCount}  `);
+    lines.push(`**Duración:** ${Math.floor(transcript.durationSeconds / 60)}m ${Math.round(transcript.durationSeconds % 60)}s`);
+    lines.push(``);
+
+    lines.push(`## Participantes`);
+    for (const spk of analysis.speakers) {
+      lines.push(``);
+      lines.push(`### ${spk.label}`);
+      lines.push(`- **Palabras:** ${spk.wordCount}`);
+      lines.push(`- **Tiempo de habla:** ${spk.talkTimePercent}%`);
+      lines.push(`- **Interrupciones dadas:** ${spk.interruptionsGiven}`);
+      lines.push(`- **Interrupciones recibidas:** ${spk.interruptionsReceived}`);
+      if (spk.bigFive) {
+        lines.push(``);
+        lines.push(`**Personalidad (Big Five):**`);
+        lines.push(`- Extraversión: ${spk.bigFive.extraversion}/100`);
+        lines.push(`- Apertura: ${spk.bigFive.openness}/100`);
+        lines.push(`- Amabilidad: ${spk.bigFive.agreeableness}/100`);
+        lines.push(`- Responsabilidad: ${spk.bigFive.conscientiousness}/100`);
+        lines.push(`- Neuroticismo: ${spk.bigFive.neuroticism}/100`);
+      }
+      lines.push(``);
+      lines.push(`**Lenguaje:**`);
+      lines.push(`- General: ${spk.language.overallScore}/100`);
+      lines.push(`- Vocabulario: ${spk.language.vocabularyScore}/100`);
+      lines.push(`- Gramática: ${spk.language.grammarScore}/100`);
+      lines.push(`- Fluidez: ${spk.fluencyScore ?? 0}/100`);
+      if (spk.topics?.length > 0) {
+        lines.push(``);
+        lines.push(`**Temas:**`);
+        for (const topic of spk.topics) {
+          lines.push(`- ${topic.name} (${topic.percent}%)`);
+        }
+      }
+    }
+
+    if (analysis.notablePhrases?.length > 0) {
+      lines.push(``);
+      lines.push(`## Frases destacadas`);
+      for (const phrase of analysis.notablePhrases) {
+        const spk = analysis.speakers[phrase.speakerId];
+        const tag = phrase.type === "strong" ? "✓ Destacado" : "✗ Error";
+        lines.push(`- **[${spk?.label ?? `Hablante ${phrase.speakerId}`}]** ${tag}: "${phrase.phrase}" — ${phrase.note}`);
+      }
+    }
+
+    lines.push(``);
+    lines.push(`## Transcripción`);
+    lines.push(``);
+    for (const turn of transcript.turns) {
+      const spk = analysis.speakers[turn.speaker];
+      lines.push(`**${spk?.label ?? `Hablante ${turn.speaker}`}:** ${turn.text}  `);
+    }
+
+    const md = lines.join("\n");
+    const blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `charlita-${(uploadedFileName ?? "analisis").replace(/\.[^.]+$/, "")}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const scrollToInterruption = (speakerId: number, role: "giver" | "receiver") => {
     const events = (analysis?.interruptionTurns ?? []).filter((it: InterruptionEvent) =>
       role === "giver" ? it.giver === speakerId : it.receiver === speakerId
@@ -480,7 +552,12 @@ export default function ConversationAnalyzer() {
                 {uploadedFileName && ` · ${uploadedFileName}`}
               </span>
             </div>
-            <button onClick={reset} className="self-start sm:self-auto text-xs text-gray-400 hover:text-gray-600 underline">← Nuevo análisis</button>
+            <div className="flex items-center gap-3">
+              <button onClick={downloadReport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-900 text-white text-xs font-semibold hover:bg-stone-700 transition-colors">
+                ↓ Descargar
+              </button>
+              <button onClick={reset} className="self-start sm:self-auto text-xs text-stone-400 hover:text-stone-600 underline">← Nuevo análisis</button>
+            </div>
           </div>
 
           {/* Speaker grid */}
